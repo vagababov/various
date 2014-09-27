@@ -3,6 +3,7 @@ import math
 
 __author__ = 'Victor Agababov'
 
+
 class OutOfBounds(Exception):
   def __init__(self, n, i):
     self.n = n
@@ -13,7 +14,16 @@ class OutOfBounds(Exception):
 
 
 class UF:
+  """UF implements UnionFind, or DisjointSet data structure.
+     See: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+  """
+
   def __init__(self, n):
+    """Initializes UF with given size.
+    
+    Args:
+      n: the size of structure, must be positive.
+    """
     if n <= 0:
       raise Exception('size must be positive, was: {0}'.format(n))
     self.data = [i for i in xrange(0, n)]
@@ -21,10 +31,19 @@ class UF:
     self.components = n
 
   def __len__(self):
+    """Returns the size of the object."""
     return len(self.data)
 
 
   def Find(self, i):
+    """Returns the identifier of the parent of object i.
+       Find is compressing paths, i.e. mutating internal state.
+
+    Args:
+      i: the identifier whose parent must be found.
+    Returns:
+      the identifier of the parent.
+    """
     if i < 0 or i >= len(self.data):
       raise OutOfBounds(len(self.data), i)
     if self.data[i] != i:
@@ -32,20 +51,41 @@ class UF:
     return self.data[i]
 
   def Union(self, i, j):
+    """Unionizes components identified by i and j, if they aren't unionized already.
+
+    Args:
+      i, j: components to unionize.
+    """
+    
     if i < 0 or i >= len(self.data):
       raise OutOfBounds(len(self.data), i)
     if j < 0 or j >= len(self.data):
       raise OutOfBounds(len(self.data), j)
+    if i == j:
+      return
+    # Find roots.
     iRoot = self.Find(i)
+    # If roots are the same, then we're done.
     jRoot = self.Find(j)
+
+    # Otherwise hang smaller tree to the root of the bigger (deeper) tree.
     if iRoot != jRoot:
       self.components -= 1
       if self.ranks[iRoot] < self.ranks[jRoot]:
         self.data[iRoot] = jRoot
       else:
          self.data[jRoot] = iRoot
+         # If trees had same size then parent's depth has to be increased by 1.
          if self.ranks[iRoot] == self.ranks[jRoot]:
            self.ranks[iRoot] += 1
+
+  def num_components():
+    """Returns number of independent components in the structure.
+
+    Returns:
+      integer in the [1, len(self)] range denoting number of components.
+    """
+    return self.components
 
   def __str__(self):
     return '{0} components: {1} -> {2}'.format(self.components, self.data, self.ranks)
@@ -140,6 +180,7 @@ class Percolator:
     return self.uf.Find(p) == self.uf.Find(p+1)
     
 
+
 def Percolate(n):
   """Percolate simulates percolation of field n.
 
@@ -160,6 +201,7 @@ def Percolate(n):
     num += 1
     p.open(i, j)
   return p, num
+
 
 def PercoStats(n, t):
   """Percolates field of size n, t times and returns mean, stddev and confidence interval of percolation probability,
